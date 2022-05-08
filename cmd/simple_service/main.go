@@ -1,4 +1,4 @@
-package main
+package simple_service
 
 import (
 	"io"
@@ -7,6 +7,7 @@ import (
 )
 
 func main() {
+	log1()
 	// Hello world, the web server
 
 	helloHandler := func(w http.ResponseWriter, req *http.Request) {
