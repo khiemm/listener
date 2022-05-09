@@ -8,6 +8,7 @@ import (
 	"io"
 	"log"
 	"math"
+	"strings"
 
 	"github.com/pkg/errors"
 )
@@ -74,7 +75,18 @@ type Record8e struct {
 	IO []ioRecord8e
 }
 
+// type BeaconData struct {
+// 	uuid [16]byte
+// 	major [2]byte
+// 	minor [2]byte
+// 	rssi [1]byte
+// }
+
 func main() {
+	// byteArray := []byte{'G', 'O', 'L', 'A', 'N', 'G'}
+	// str1 := string(byteArray[:])
+	// fmt.Println("String =", str1)
+
 	// data := "000000000000003608010000016B40D8EA30010000000000000000000000000000000105021503010101425E0F01F10000601A014E0000000000000000010000C7CF"
 	// data := "000000000000004A8E010000016B412CEE000100000000000000000000000000000000010005000100010100010011001D00010010015E2C880002000B000000003544C87A000E000000001DD7E06A00000100002994"
 	// beacon sensor
@@ -190,6 +202,7 @@ func parseRecord(r io.Reader) (rec *Record, err error) {
 	return
 }
 
+// TODO: optimize this to use one `parseRecord` func
 func parseRecord8e(r io.Reader) (rec *Record8e, err error) {
 	rec = new(Record8e)
 	dr := dataRecord8e{}
@@ -245,4 +258,30 @@ func parseRecord8e(r io.Reader) (rec *Record8e, err error) {
 		}
 	}
 	return
+}
+
+func parseBeacon() {
+	s := "11210102030405060708090a0b0c0d0e0f1023262326bf210102030405060708090a0b0c0d0e0f1023532353c0210102030405060708090a0b0c0d0e0f1023502350c1210102030405060708090a0b0c0d0e0f1023512351bf210102030405060708090a0b0c0d0e0f1023282328bc210102030405060708090a0b0c0d0e0f1020d120d1c02110190d0c0b0a0908070605040302010000020018a1"
+	x := s[2:]
+	y := strings.Split(x, "21")
+	v := y[1:]
+	for _, z := range v {
+		uuid := z[:32]
+		major := z[32:36]
+		minor := z[36:40]
+		rssi := z[40:]
+		fmt.Println(uuid, major, minor, rssi)
+		// decoded, err := hex.DecodeString(z)
+		// if err != nil {
+		// 	log.Fatal(err)
+		// }
+		// fmt.Println(decoded)
+		// 	reader := bytes.NewReader(decoded)
+		// 	b := new(BeaconData)
+		// err = binary.Read(reader, binary.BigEndian, b)
+		// if err != nil {
+		// 	log.Fatal(err)
+		// }
+		// fmt.Println(b)
+	}
 }

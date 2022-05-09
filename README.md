@@ -32,7 +32,8 @@
   - github.com/go-sql-driver/mysql: Just registering the driver
 - can query from other package
 
-# next
+# feature
 
-- listen TCP incoming
+- listen TCP incoming - GPS data
 - handle parse and save to database
+- beacon data
