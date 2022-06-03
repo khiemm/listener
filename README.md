@@ -34,6 +34,7 @@
 
 # feature
 
+- best way to parse in parser.go
 - listen TCP incoming - GPS data
 - handle parse and save to database
 - beacon data

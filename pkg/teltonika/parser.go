@@ -87,22 +87,30 @@ func main() {
 	// str1 := string(byteArray[:])
 	// fmt.Println("String =", str1)
 
+	// sample codec8
 	// data := "000000000000003608010000016B40D8EA30010000000000000000000000000000000105021503010101425E0F01F10000601A014E0000000000000000010000C7CF"
-	// data := "000000000000004A8E010000016B412CEE000100000000000000000000000000000000010005000100010100010011001D00010010015E2C880002000B000000003544C87A000E000000001DD7E06A00000100002994"
+
+	// sample codec8e
+	data := "000000000000004A8E010000016B412CEE000100000000000000000000000000000000010005000100010100010011001D00010010015E2C880002000B000000003544C87A000E000000001DD7E06A00000100002994"
+
 	// beacon sensor
-	data := `000000000000005A8E010000016B69B0C9510000000000000000000000000000000001810001000000000000000000010181002D11216B817F8A274D4FBDB62D33E1842F8DF8014D022BBF21A579723675064DC396A7C3520129F61900000000BF0100003E5D`
+	// data := `000000000000005A8E010000016B69B0C9510000000000000000000000000000000001810001000000000000000000010181002D11216B817F8A274D4FBDB62D33E1842F8DF8014D022BBF21A579723675064DC396A7C3520129F61900000000BF0100003E5D`
+
+	// handbrake, chua chinh xac
+	// data := "00000000000000688E010000016B69B0C9510000000000000000000000000000000000840001000000000000000000010084000c000000000800000100003E5D"
 
 	// r := strings.NewReader(data)
 	// fmt.Println(r)
 	// reader2 := []byte(data)
 	// fmt.Println(reader2)
+
 	// get byte array
 	decoded, err := hex.DecodeString(data)
 	if err != nil {
 		log.Fatal(err)
 	}
 	fmt.Printf("%x\n", decoded)
-	fmt.Println(decoded)
+	fmt.Println("hex to decimal:", decoded)
 
 	// convert to Reader
 	reader := bytes.NewReader(decoded)
@@ -113,8 +121,9 @@ func main() {
 	if err != nil {
 		log.Fatal(err)
 	}
-	fmt.Printf("Header %x\n", tcph)
-	fmt.Println("Header", tcph)
+	fmt.Printf("header by hex %x\n", tcph)
+	fmt.Println("header by decimal:", tcph)
+	fmt.Println("DataLen:", tcph.DataLen)
 	fmt.Println("reader", reader)
 
 	// get body
@@ -131,7 +140,8 @@ func main() {
 	if err != nil {
 		log.Fatal(err)
 	}
-	fmt.Println("Footer", f)
+	fmt.Printf("Footer %x\n", f)
+	fmt.Println("Footer decimal", f)
 
 	// TODO: not understand yet
 	avl = append(avl, f.Count)
@@ -142,6 +152,7 @@ func main() {
 	buf := new(bytes.Buffer)
 	buf.Write(avl[0 : len(avl)-1])
 	fmt.Printf("buf %x\n", buf)
+	fmt.Println("buf decimal", buf) // error
 
 	// read codec and number of records
 	ph := new(packetHeader)
