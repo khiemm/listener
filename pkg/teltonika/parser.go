@@ -83,7 +83,9 @@ type Record8e struct {
 // }
 
 func main() {
+	// byte array to string
 	// byteArray := []byte{'G', 'O', 'L', 'A', 'N', 'G'}
+	// fmt.Println("String =", byteArray)
 	// str1 := string(byteArray[:])
 	// fmt.Println("String =", str1)
 
@@ -104,7 +106,7 @@ func main() {
 	// reader2 := []byte(data)
 	// fmt.Println(reader2)
 
-	// get byte array
+	// hex string to byte array
 	decoded, err := hex.DecodeString(data)
 	if err != nil {
 		log.Fatal(err)
@@ -112,11 +114,15 @@ func main() {
 	fmt.Printf("%x\n", decoded)
 	fmt.Println("hex to decimal:", decoded)
 
-	// convert to Reader
+	// convert to Reader, to read a stream of data
+	// why need convert a byte slice into an io.Reader, because real data is stream, not string
+	// Reader contains current reading index
 	reader := bytes.NewReader(decoded)
+	fmt.Println("reader", reader)
 
 	// read header
 	tcph := new(tcpHeader)
+	// read1: read by structured binary data
 	err = binary.Read(reader, binary.BigEndian, tcph)
 	if err != nil {
 		log.Fatal(err)
@@ -126,13 +132,15 @@ func main() {
 	fmt.Println("DataLen:", tcph.DataLen)
 	fmt.Println("reader", reader)
 
-	// get body
+	// read body
 	avl := make([]byte, tcph.DataLen-1)
+	// read2: read len bytes
 	_, err4 := io.ReadFull(reader, avl)
 	if err4 != nil {
 		log.Fatal(err4)
 	}
 	fmt.Println("Body", avl)
+	fmt.Println("reader", reader)
 
 	// read footer
 	f := new(footer)
@@ -143,38 +151,55 @@ func main() {
 	fmt.Printf("Footer %x\n", f)
 	fmt.Println("Footer decimal", f)
 
-	// TODO: not understand yet
-	avl = append(avl, f.Count)
+	// avl = append(avl, f.Count)
+	// TODO: do this to checksum
+	// fmt.Println("new body", avl)
 
 	// because reader has already been read
-	// so need create a new reader
-	// TODO: user reader instead of buffer
-	buf := new(bytes.Buffer)
-	buf.Write(avl[0 : len(avl)-1])
-	fmt.Printf("buf %x\n", buf)
-	fmt.Println("buf decimal", buf) // error
+	// so need create a new reader, but why need if I have got the avl data already
+	// TODO: why use buffer instead of reader, Reader vs Buffer
+	buffer := new(bytes.Buffer)
+	// read3: to write into buffer
+	// buf.Write(avl[0 : len(avl)-1])
+	buffer.Write(avl[0:])
+	fmt.Printf("buffer %x\n", buffer)
+	fmt.Printf("buffer decimal %d\n", buffer)
 
 	// read codec and number of records
 	ph := new(packetHeader)
-	err = binary.Read(buf, binary.BigEndian, ph)
+	err = binary.Read(buffer, binary.BigEndian, ph)
 	if err != nil {
 		log.Fatal(err)
 	}
 	fmt.Println("packetHeader", ph)
 
-	// TODO: check codec 8 or 8e
-	records := make([]*Record8e, ph.Count, ph.Count)
-	for i := 0; i < int(ph.Count); i++ {
-		var record *Record8e
-		record, err = parseRecord8e(buf)
-		if err != nil {
-			log.Fatal(err)
+	if ph.Codec == 8 {
+		records8 := make([]*Record, ph.Count)
+		for i := 0; i < int(ph.Count); i++ {
+			var record *Record
+			record, err = parseRecord(buffer)
+			if err != nil {
+				log.Fatal(err)
+			}
+			records8[i] = record
 		}
-		records[i] = record
+		fmt.Println("records", records8[0])
+	} else {
+		records8e := make([]*Record8e, ph.Count)
+		for i := 0; i < int(ph.Count); i++ {
+			var record *Record8e
+			record, err = parseRecord8e(buffer)
+			if err != nil {
+				log.Fatal(err)
+			}
+			records8e[i] = record
+		}
+		fmt.Println("records", records8e[0])
 	}
+
 	// TODO: print all records
 	// TODO: name record data, see fleetlog
-	fmt.Println("records", records[0])
+	// fmt.Println("records", records[0])
 }
 
 func parseRecord(r io.Reader) (rec *Record, err error) {
@@ -213,7 +238,6 @@ func parseRecord(r io.Reader) (rec *Record, err error) {
 	return
 }
 
-// TODO: optimize this to use one `parseRecord` func
 func parseRecord8e(r io.Reader) (rec *Record8e, err error) {
 	rec = new(Record8e)
 	dr := dataRecord8e{}
