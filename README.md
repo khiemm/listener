@@ -38,3 +38,6 @@
 - listen TCP incoming - GPS data
 - handle parse and save to database
 - beacon data
+
+# concurency
+- go routine cannot execute alone if main process fast
