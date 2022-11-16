@@ -41,3 +41,5 @@
 
 # concurency
 - go routine cannot execute alone if main process fast
+- context
+- os
