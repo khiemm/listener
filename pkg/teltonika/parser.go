@@ -18,15 +18,15 @@ type tcpHeader struct {
 	DataLen uint32
 }
 
+type packetHeader struct {
+	Codec uint8
+	Count uint8
+}
+
 type footer struct {
 	Count uint8
 	_     uint16
 	CRC   uint16
-}
-
-type packetHeader struct {
-	Codec uint8
-	Count uint8
 }
 
 type dataRecord struct {
@@ -83,17 +83,17 @@ type Record8e struct {
 // }
 
 func main() {
-	// byte array to string
-	// byteArray := []byte{'G', 'O', 'L', 'A', 'N', 'G'}
-	// fmt.Println("String =", byteArray)
-	// str1 := string(byteArray[:])
-	// fmt.Println("String =", str1)
+	// NOTE: byte array <-> string, base on ASCII
+	// byteArray := []byte{'G', 'O', 'L', 'A', 'N', 'G'} // =[]byte("GOLANG")
+	// fmt.Println("String as byte array:", byteArray)
+	// str1 := string(byteArray)
+	// fmt.Println("String:", str1)
 
 	// sample codec8
-	// data := "000000000000003608010000016B40D8EA30010000000000000000000000000000000105021503010101425E0F01F10000601A014E0000000000000000010000C7CF"
+	data := "000000000000003608010000016B40D8EA30010000000000000000000000000000000105021503010101425E0F01F10000601A014E0000000000000000010000C7CF"
 
 	// sample codec8e
-	data := "000000000000004A8E010000016B412CEE000100000000000000000000000000000000010005000100010100010011001D00010010015E2C880002000B000000003544C87A000E000000001DD7E06A00000100002994"
+	// data := "000000000000004A8E010000016B412CEE000100000000000000000000000000000000010005000100010100010011001D00010010015E2C880002000B000000003544C87A000E000000001DD7E06A00000100002994"
 
 	// beacon sensor
 	// data := `000000000000005A8E010000016B69B0C9510000000000000000000000000000000001810001000000000000000000010181002D11216B817F8A274D4FBDB62D33E1842F8DF8014D022BBF21A579723675064DC396A7C3520129F61900000000BF0100003E5D`
@@ -101,12 +101,11 @@ func main() {
 	// handbrake, chua chinh xac
 	// data := "00000000000000688E010000016B69B0C9510000000000000000000000000000000000840001000000000000000000010084000c000000000800000100003E5D"
 
+	// NOTE: Reader: string to reader
 	// r := strings.NewReader(data)
-	// fmt.Println(r)
-	// reader2 := []byte(data)
-	// fmt.Println(reader2)
+	// fmt.Println("Reader:", r)
 
-	// hex string to byte array
+	// NOTE: hex string to byte array
 	decoded, err := hex.DecodeString(data)
 	if err != nil {
 		log.Fatal(err)
@@ -117,6 +116,7 @@ func main() {
 	// convert to Reader, to read a stream of data
 	// why need convert a byte slice into an io.Reader, because real data is stream, not string
 	// Reader contains current reading index
+	// NOTE: byte array to reader
 	reader := bytes.NewReader(decoded)
 	fmt.Println("reader", reader)
 
@@ -127,12 +127,14 @@ func main() {
 	if err != nil {
 		log.Fatal(err)
 	}
-	fmt.Printf("header by hex %x\n", tcph)
+	fmt.Printf("header by hex: %x\n", tcph)
 	fmt.Println("header by decimal:", tcph)
 	fmt.Println("DataLen:", tcph.DataLen)
 	fmt.Println("reader", reader)
 
 	// read body
+	// why not use binary.Read, because not struct yet for avl?
+	// because need checksum in footer first
 	avl := make([]byte, tcph.DataLen-1)
 	// read2: read len bytes
 	_, err4 := io.ReadFull(reader, avl)
@@ -157,8 +159,9 @@ func main() {
 
 	// because reader has already been read
 	// so need create a new reader, but why need if I have got the avl data already
-	// TODO: why use buffer instead of reader, Reader vs Buffer
+	// TODO: why use buffer instead of reader, dung nhu o duoi van cho ket qua dung, Reader vs Buffer: https://pkg.go.dev/bytes#Reader
 	buffer := new(bytes.Buffer)
+	// buffer := bytes.NewReader(avl)
 	// read3: to write into buffer
 	// buf.Write(avl[0 : len(avl)-1])
 	buffer.Write(avl[0:])
@@ -166,6 +169,7 @@ func main() {
 	fmt.Printf("buffer decimal %d\n", buffer)
 
 	// read codec and number of records
+	// FIXME: thu tu doc dang ko hop li, cai nay nen doc ngay sau tcpHeader
 	ph := new(packetHeader)
 	err = binary.Read(buffer, binary.BigEndian, ph)
 	if err != nil {
