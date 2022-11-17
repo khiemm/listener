@@ -1,12 +1,13 @@
 # project structure
 
-- cmd:
+- cmd: main programs, used packages are defined in go.mod of main module
 - internal:
-- pkg:
+- pkg: dependency packages
 
 # module
 
-- has a `go.mod`
+- `go.mod` required
+- `go.sum` necessary when having external packages
 - has multiple packages
 
 # package
@@ -34,12 +35,13 @@
 
 # feature
 
-- best way to parse in parser.go
-- listen TCP incoming - GPS data
+- best way to parse in parser.go: check with teltonika data
+- listen TCP incoming: write NodeJs code to send data
 - handle parse and save to database
 - beacon data
 
 # concurency
+
 - go routine cannot execute alone if main process fast
 - context
 - os
