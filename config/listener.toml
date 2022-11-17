@@ -1,0 +1,14 @@
+[db]
+username = "root"
+password = "root"
+server = "localhost:3306"
+name = "gpsgsm"
+pool_size = 16
+trace = false
+
+[teltonika]
+address = "0.0.0.0:1207"
+timeout = 30
+
+[health_check]
+address = "0.0.0.0:1200"
